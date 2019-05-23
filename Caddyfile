@@ -1,0 +1,16 @@
+http://mmkexample.com, https://mmkexample.com {
+	redir {
+		if {scheme} is http
+		/ https://{host}{uri}
+	}
+	root /usr/src/wordpress
+	gzip
+	tls self_signed
+	fastcgi / wordpress:9000 php
+	rewrite {
+	    if {path} not_match ^\/wp-admin
+	    to {path} {path}/ /index.php?_url={uri}
+	}
+	log stdout
+	errors stderr
+}

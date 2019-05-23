@@ -1,0 +1,52 @@
+version: '3.7'
+volumes:
+  mysql:
+  html:
+services:
+  db:
+    image: mariadb
+    container_name: mysql
+    volumes:
+      - mysql:/var/lib/mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: wordpress
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    networks:
+      - backend
+  wordpress:
+    depends_on:
+      - db
+    image: wordpress:fpm
+    container_name: wordpress
+    links:
+      - db
+    restart: unless-stopped
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_PASSWORD: wordpress
+    volumes:
+      - html:/usr/src/wordpress
+      - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    networks:
+      - backend
+  server:
+    image: abiosoft/caddy
+    container_name: caddy
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - html:/usr/src/wordpress
+      - ./Caddyfile:/etc/Caddyfile
+    networks:
+      - frontend
+      - backend
+networks:
+  frontend:
+    name: frontend
+  backend:
+    name: backend
